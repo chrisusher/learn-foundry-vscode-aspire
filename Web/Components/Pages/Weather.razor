@@ -39,11 +39,128 @@ else
     </table>
 }
 
+<hr />
+
+<h2>AI Weather Recommendations</h2>
+
+<p>Use the weather-agent to get recommendations based on the current forecast, then ask follow-up questions.</p>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="LoadRecommendationAsync" disabled="@isRecommendationLoading">
+        @(isRecommendationLoading ? "Thinking..." : "Get AI Recommendations")
+    </button>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(recommendation))
+{
+    <div class="alert alert-info" role="status">
+        @recommendation
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
+<h3>Chat With Weather Agent</h3>
+
+<div class="card mb-3">
+    <div class="card-body">
+        @if (messages.Count == 0)
+        {
+            <p class="text-muted mb-0">Start the conversation by asking the agent about plans, clothing, or outdoor activities.</p>
+        }
+        else
+        {
+            @foreach (var message in messages)
+            {
+                <p>
+                    <strong>@(message.Role == "user" ? "You" : "Weather Agent"):</strong>
+                    @message.Content
+                </p>
+            }
+        }
+    </div>
+</div>
+
+<EditForm Model="this" FormName="weather-agent-chat" OnSubmit="SendMessageAsync">
+    <div class="input-group mb-3">
+        <InputText class="form-control" @bind-Value="currentMessage" placeholder="Ask a follow-up question..." />
+        <button class="btn btn-success" type="submit" disabled="@isSendingMessage">
+            @(isSendingMessage ? "Sending..." : "Send")
+        </button>
+    </div>
+</EditForm>
+
 @code {
     private WeatherForecast[]? forecasts;
+    private string? recommendation;
+    private bool isRecommendationLoading;
+    private bool isSendingMessage;
+    private string currentMessage = string.Empty;
+    private string? errorMessage;
+    private readonly List<WeatherAgentMessage> messages = [];
 
     protected override async Task OnInitializedAsync()
     {
         forecasts = await WeatherApi.GetWeatherAsync();
+    }
+
+    private async Task LoadRecommendationAsync()
+    {
+        isRecommendationLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await WeatherApi.GetRecommendationAsync();
+            recommendation = result?.Recommendation ?? "No recommendation returned.";
+
+            if (!string.IsNullOrWhiteSpace(recommendation))
+            {
+                messages.Add(new WeatherAgentMessage("assistant", recommendation));
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Couldn't load AI recommendations: {ex.Message}";
+        }
+        finally
+        {
+            isRecommendationLoading = false;
+        }
+    }
+
+    private async Task SendMessageAsync(EditContext _)
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage))
+        {
+            return;
+        }
+
+        isSendingMessage = true;
+        errorMessage = null;
+        var userMessage = currentMessage.Trim();
+        currentMessage = string.Empty;
+
+        messages.Add(new WeatherAgentMessage("user", userMessage));
+
+        try
+        {
+            var response = await WeatherApi.SendChatMessageAsync(userMessage, messages);
+            var reply = response?.Reply ?? "I couldn't answer right now. Do you have any follow-up questions?";
+            messages.Add(new WeatherAgentMessage("assistant", reply));
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Couldn't send chat message: {ex.Message}";
+        }
+        finally
+        {
+            isSendingMessage = false;
+        }
     }
 }
