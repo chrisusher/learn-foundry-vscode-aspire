@@ -13,4 +13,7 @@
     <ProjectReference Include="..\Web\Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Foundry" Version="13.2.2-preview.1.26207.2" />
+  </ItemGroup>
 </Project>
