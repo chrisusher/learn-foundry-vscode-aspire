@@ -1,9 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.Foundry_VSC_ApiService>("apiservice")
+var apiService = builder.AddProject<Projects.API>("apiservice")
     .WithHttpHealthCheck("/health");
 
-builder.AddProject<Projects.Foundry_VSC_Web>("webfrontend")
+builder.AddProject<Projects.Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
     .WithReference(apiService)

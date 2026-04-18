@@ -1,5 +1,5 @@
-using Foundry_VSC.Web;
-using Foundry_VSC.Web.Components;
+using Web;
+using Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 

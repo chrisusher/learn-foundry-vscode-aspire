@@ -1,4 +1,4 @@
-namespace Foundry_VSC.Web;
+namespace Web;
 
 public class WeatherApiClient(HttpClient httpClient)
 {
