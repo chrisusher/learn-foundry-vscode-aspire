@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.wordWrap": "on",
+        "chat.tools.terminal.autoApprove": {
+            "dotnet build": true,
+            "aspire": true
+        }
+    }
+}
